@@ -1,3 +1,4 @@
+#!/bin/bash
 # Expects $MMS_GROUP_ID and $MMS_AGENT_APIKEY
 
 #TODO: Error if environment varibles not set.
