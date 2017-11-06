@@ -1,6 +1,57 @@
 #!/bin/bash
 # $1 = name of cluster
 
+
+#--------->8---------cut here---------8<---------
+set -eu
+
+trap _exit_trap EXIT
+trap _err_trap ERR
+_showed_traceback=f
+
+function _exit_trap
+{
+  local _ec="$?"
+  if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
+    traceback 1
+  fi
+}
+
+function _err_trap
+{
+  local _ec="$?"
+  local _cmd="${BASH_COMMAND:-unknown}"
+  traceback 1
+  _showed_traceback=t
+  echo "The command ${_cmd} exited with exit code ${_ec}." 1>&2
+}
+
+function traceback
+{
+  # Hide the traceback() call.
+  local -i start=$(( ${1:-0} + 1 ))
+  local -i end=${#BASH_SOURCE[@]}
+  local -i i=0
+  local -i j=0
+
+  echo "Traceback (last called is first):" 1>&2
+  for ((i=${start}; i < ${end}; i++)); do
+    j=$(( $i - 1 ))
+    local function="${FUNCNAME[$i]}"
+    local file="${BASH_SOURCE[$i]}"
+    local line="${BASH_LINENO[$j]}"
+    echo "     ${function}() in ${file}:${line}" 1>&2
+  done
+}
+#--------->8---------cut here---------8<---------
+
+
+
+
+
+
+
+
 echo "k8s-mongodb-opsmanager -> Cluster Provisioning"
 set -e
 set -x
@@ -16,7 +67,8 @@ MMS_BASE_URL=http://129.33.250.96:8080
 MMS_USER=jason.mimick@mongodb.com
 MMS_APIKEY=36e70a92-d1f8-47a8-9ef4-e640cd85fc6c
 CLUSTER_NAME=$1
-DISK_SIZE=30GB
+GCLOUD_DISK_SIZE=30GB
+KUBECTL_DISK_SIZE=30Gi
 DISK_TYPE=pd-ssd
 NUMBER_OF_DISKS=3
 #
@@ -26,7 +78,7 @@ echo "MongoDB Ops Manager Base Url: $MMS_BASE_URL"
 echo "MongoDB Ops Manager User: $MMS_USER"
 echo "MongoDB Ops Manager Api Key: $MMS_APIKEY"
 echo "Disk Info: Number: $NUMBER_OF_DISKS, \
-Type: $DISK_TYPE, Size: $DISK_SIZE"
+Type: $DISK_TYPE, Size: $GCLOUD_DISK_SIZE"
 
 
 GOT_CLUSTER=`gcloud container clusters list \
@@ -35,23 +87,29 @@ if [[ $GOT_CLUSTER ]]; then
   gcloud container clusters delete "$CLUSTER_NAME" --quiet
 fi
 gcloud container clusters create "$CLUSTER_NAME"
+#disks=$(gcloud compute disks list --uri)
+# | rev | cut -d "/" -f 1 | rev | grep $DISK_NAME)
+#echo "Found disk uris=$disks"
+#disks=$(echo "$disks" | rev | cut -d "/" -f 1 | rev)
+#echo "Found disk names=$disks"
+#disk_array=$(echo "$disks")
 for i in $(seq 1 $NUMBER_OF_DISKS); 
 do
   # TODO - If we deleted the cluster, then delete the disks
   DISK_NAME="$CLUSTER_NAME"-disk-$i
-  GOT_DISK=$( bash <<EOF
-  gcloud compute disks list --uri | rev | \
-  cut -d "/" -f 1 | rev | grep $DISK_NAME
-  )
-  EOF
-  
+  echo "DISK_NAME=$DISK_NAME"
+  #GOT_DISK=`echo "$disks" | grep --color=never "$DISK_NAME"`
+  GOT_DISK=`gcloud compute disks list \
+  --filter="name:$DISK_NAME"`
+  echo "GOT_DISK=$GOT_DISK"
   if [[ $GOT_DISK ]]; then
+  #if [[  '" ${disk_array[@]} "' =~ '" ${DISK_NAME} "' ]]; then
     echo "Disk '$DISK_NAME' existed so deleting."
     gcloud compute disks delete "$CLUSTER_NAME"-disk-$i --quiet
   fi
   echo "Creating disk $DISK_NAME."
-  gcloud compute disks create --size $DISK_SIZE \
---type $DISK_TYPE $DISK_NAME
+  gcloud compute disks create --size $GCLOUD_DISK_SIZE \
+  --type $DISK_TYPE $DISK_NAME
 done
 
 # ######################################
@@ -59,13 +117,13 @@ done
 # ######################################
 
 tmp_json=$(mktemp).json
-$( bash <<EOF
+$( bash <<EXISTING_GROUPS_EOF
 curl --silent --user "$MMS_USER:$MMS_APIKEY" --digest \
 --header "Accept: application/json" \
 --header "Content-Type: application/json" \
 -o $tmp_json --request \
 GET "$MMS_BASE_URL/api/public/v1.0/groups"
-EOF
+EXISTING_GROUPS_EOF
 )
 
 EXISTING_GROUPS=$(python - <<PY_END 
@@ -87,17 +145,18 @@ IFS=',' read -r -a groups <<< "$EXISTING_GROUPS"
 if [[ ! " ${groups[@]} " =~ " ${CLUSTER_NAME} " ]]; then
     # Need to create the group
     echo "No Ops Manager group called '$CLUSTER_NAME' found."
-    echo "Creating group: $CLUSER_NAME"
+    echo "Creating group: $CLUSTER_NAME"
     tmp_json=$(mktemp).json
     curl --user "$MMS_USER:$MMS_APIKEY" --digest \
-    -o "$tmp_json"
+    -o "$tmp_json" \
     --header "Accept: application/json" \
     --header "Content-Type: application/json" \
     --request POST \
     "$MMS_BASE_URL/api/public/v1.0/groups" \
-    --data '{ "name" : "$CLUSTER_NAME" }'
+    --data '{ "name" : "'"$CLUSTER_NAME"'" }'
+    # TODO: Need to check if error in response!
 else
-    echo "Found Ops Manager group: $CLUSER_NAME"
+    echo "Found Ops Manager group: $CLUSTER_NAME"
 fi
 
 
@@ -114,21 +173,21 @@ GET "$MMS_BASE_URL/api/public/v1.0/groups/byName/$CLUSTER_NAME"
 EOF
 ) 
 
-MMS_GROUP_ID=$(python - <<PY_END 
+MMS_GROUP_ID=$(python - <<PY_END
 import json; 
 f=open('$tmp_json','r');
-j=json.loads(f.read())['results'];
-f.close()
+j=json.loads(f.read());
+f.close();
 print j['id'];
 PY_END
 )
 Echo "MongoDB Ops Manager Group Id (MMS_GROUP_ID):$MMS_GROUP_ID"
 
-MMS_AGENT_APIKEY=$(python - <<PY_END 
+MMS_AGENT_APIKEY=$(python - <<PY_END
 import json; 
 f=open('$tmp_json','r');
-j=json.loads(f.read())['results'];
-f.close()
+j=json.loads(f.read());
+f.close();
 print j['agentApiKey'];
 PY_END
 )
@@ -144,7 +203,7 @@ for i in $(seq 1 $NUMBER_OF_DISKS);
 do
   echo "Creating $CLUSTER_NAME-data-volume-$i."
   TEMPYAML=$(mktemp).yaml
-  cp gcd-ssd-persistentvolume.yaml $TEMPYAML
+  cp gce-ssd-persistent-volume-CLUSTER_NAME.yaml $TEMPYAML
   sed -i -e "s@%%CLUSTER_NAME%%@$CLUSTER_NAME@g"  $TEMPYAML
   sed -i -e "s@%%NUM%%@$i@g" $TEMPYAML
   echo "Applying $TEMPYAML"
@@ -158,15 +217,16 @@ echo "Creating secret k8s-mongodb-opsmanager-$CLUSTER_NAME"
 echo "Keys: group-id,agent-apikey"
 kubectl create secret generic k8s-mongodb-opsmanager-$CLUSTER_NAME \
 --from-literal=agent-apikey=$MMS_AGENT_APIKEY \
---from-literal=group-id=$MMS_GROUP_ID
+--from-literal=group-id=$MMS_GROUP_ID \
+--from-literal=base-url=$MMS_BASE_URL
 
 echo "now apply the service and node yamls"
 
 echo "Creating service \
-mongodb-mms-server-service-$CLUSTER_NAME"
+mongodb-mms-service-$CLUSTER_NAME"
 TEMPYAML=$(mktemp).yaml
 echo "Configuring service for \
-mongodb-mms-server-service-$CLUSTER_NAME."
+mongodb-mms-service-$CLUSTER_NAME."
 echo "Using $TEMPYAML."
 cp mongodb-mms-service-CLUSTER_NAME.yaml $TEMPYAML
 sed -i -e "s@%%CLUSTER_NAME%%@$CLUSTER_NAME@g"  $TEMPYAML
@@ -181,7 +241,7 @@ echo "Configuring stateful set for $CLUSTER_NAME"
 echo "Using $TEMPYAML."
 cp mongodb-mms-server-CLUSTER_NAME.yaml $TEMPYAML
 sed -i -e "s@%%CLUSTER_NAME%%@$CLUSTER_NAME@g"  $TEMPYAML
-sed -i -e "s@%%DISK_SIZE%%@$DISK_SIZE@g" $TEMPYAML
+sed -i -e "s@%%DISK_SIZE%%@$KUBECTL_DISK_SIZE@g" $TEMPYAML
 echo "Applying $TEMPYAML"
 kubectl apply -f $TEMPYAML
 

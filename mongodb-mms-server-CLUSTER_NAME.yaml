@@ -18,17 +18,17 @@ spec:
             - name: MMS_BASE_URL
               valueFrom: 
                 secretKeyRef:
-                  name: k8s-mongodb-opsmanager-$CLUSTER_NAME
+                  name: k8s-mongodb-opsmanager-%%CLUSTER_NAME%%
                   key: base-url
             - name: MMS_AGENT_APIKEY
               valueFrom: 
                 secretKeyRef:
-                  name: k8s-mongodb-opsmanager-$CLUSTER_NAME
+                  name: k8s-mongodb-opsmanager-%%CLUSTER_NAME%%
                   key: agent-apikey
             - name: MMS_GROUP_ID
               valueFrom: 
                 secretKeyRef:
-                  name: k8s-mongodb-opsmanager-$CLUSTER_NAME
+                  name: k8s-mongodb-opsmanager-%%CLUSTER_NAME%%
                   key: group-id
             - name: MMS_BOOTSTRAP_URL
               value: "https://raw.githubusercontent.com/jasonmimick/k8s-mongodb-opsmanager/master/install-automation-agent.sh" 
