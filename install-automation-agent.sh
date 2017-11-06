@@ -1,8 +1,16 @@
 #!/bin/bash
 # Expects $MMS_GROUP_ID and $MMS_AGENT_APIKEY
 
-curl -OL https://cloud.mongodb.com/download/agent/automation/mongodb-mms-automation-agent-manager-4.5.1.2319-1.x86_64.rhel7.rpm
-rpm -U mongodb-mms-automation-agent-manager-4.5.1.2319-1.x86_64.rhel7.rpm
+#TODO: Error if environment varibles not set.
+#curl -OL https://cloud.mongodb.com/download/agent/automation/mongodb-mms-automation-agent-manager-4.5.1.2319-1.x86_64.rhel7.rpm
+
+AGENT_URL=http://129.33.250.96:8080/download/agent/automation/
+AGENT=mongodb-mms-automation-agent-manager-
+AGENT_VERSION=3.2.14.2187-1.x86_64.rhel7.rpm
+curl -OL $AGENT_URL$AGENT$AGENT_VERSION
+
+#rpm -U mongodb-mms-automation-agent-manager-4.5.1.2319-1.x86_64.rhel7.rpm
+rpm -U $AGENT$AGENT_VERSION
 cat << ENDMMS >> /etc/mongodb-mms/automation-agent.config
 
 # ############################################
@@ -20,7 +28,7 @@ ENDMMS
 
 chown mongod:mongod /data
 
-/usr/bin/mkdir /var/run/mongodb-mms-automation
+/usr/bin/mkdir -p /var/run/mongodb-mms-automation
 /usr/bin/chown -R mongod:mongod /var/run/mongodb-mms-automation
 su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \
 -f /etc/mongodb-mms/automation-agent.config \
