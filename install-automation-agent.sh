@@ -42,7 +42,7 @@ echo "Starting automation agent..."
 su -s "/bin/bash" -c "/opt/mongodb-mms-automation/bin/mongodb-mms-automation-agent \
 -f /etc/mongodb-mms/automation-agent.config \
 -pidfilepath /var/run/mongodb-mms-automation/mongodb-mms-automation-agent.pid >> \
-/var/log/mongodb-mms-automation/automation-agent-fatal.log 2>&1 &" mongod
-echo "MongoDB Ops Manager automation agent started. `date`"
+/var/log/mongodb-mms-automation/automation-agent-fatal.log 2>&1" mongod
+echo "MongoDB Ops Manager automation agent stopped! `date`"
 
 
