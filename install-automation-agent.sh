@@ -1,11 +1,18 @@
 #!/bin/bash
 # Expects $MMS_GROUP_ID and $MMS_AGENT_APIKEY
+# MMS_USER, and MMS_APIKEY
 
 #TODO: Error if environment varibles not set.
 
-AGENT_URL=${MMS_BASE_URL}/download/agent/automation/
+AGENT_URL=${MMS_BASE_URL_INTERNAL}/download/agent/automation/
 AGENT=mongodb-mms-automation-agent-manager-
-AGENT_VERSION=3.2.14.2187-1.x86_64.rhel7.rpm
+
+# TODO - How to discover this download???? can't find in api
+#AGENT_VERSION=3.2.14.2187-1.x86_64.rhel7.rpm
+AGENT_VERSION=3.2.16.2263-1.x86_64.rhel7.rpm
+# We need to auto-detect the automation agent versions
+# available for us to download
+
 echo "Downloading $AGENT_URL$AGENT$AGENT_VERSION"
 curl -OL "$AGENT_URL$AGENT$AGENT_VERSION"
 

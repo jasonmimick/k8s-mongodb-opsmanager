@@ -4,11 +4,12 @@ metadata:
   name: mongodb-mms-server-%%CLUSTER_NAME%%
 spec:
   serviceName: mongodb-service-%%CLUSTER_NAME%%
-  replicas: 3
+  replicas: %%NUMBER_OF_DISKS%% 
   template:
     metadata:
       labels:
         app: mongodb-mms-server-%%CLUSTER_NAME%%
+        role: mongodb-mms-server-%%CLUSTER_NAME%%
     spec:
       terminationGracePeriodSeconds: 10
       containers:
@@ -32,10 +33,10 @@ spec:
                   key: group-id
             - name: MMS_BOOTSTRAP_URL
               value: "https://raw.githubusercontent.com/jasonmimick/k8s-mongodb-opsmanager/master/install-automation-agent.sh"
-              command: [ '/bin/sh', '-c' ]
-              args: [ "curl -OL $(MMS_BOOTSTRAP_URL) && chmod +x install-automation-agent.sh && ./install-automation-agent.sh" ]
+          command: [ '/bin/sh', '-c' ]
+          args: [ "curl -OL $(MMS_BOOTSTRAP_URL) && chmod +x install-automation-agent.sh && ./install-automation-agent.sh" ]
           ports:
-            - containerPort: 27000
+            - containerPort: 30036
           volumeMounts:
             - name: mongodb-persistent-storage-claim
               mountPath: /data

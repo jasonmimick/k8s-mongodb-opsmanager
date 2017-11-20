@@ -1,0 +1,46 @@
+{
+   "options": {
+        "downloadBase": "/var/lib/mongodb-mms-automation",
+        "downloadBaseWindows": "C:\\mongodb-mms-automation"
+    },
+    "processes": [
+        {
+            "args2_6": {
+                "net": {
+                    "port": 0
+                },
+                "replication": {
+                    "replSetName": "XXX"
+                },
+                "storage": {
+                    "dbPath": "/data/XXX"
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/data/XXXX/mongodb.log"
+                }
+            },
+            "hostname": "XXX",
+            "logRotate": {
+                "sizeThresholdMB": 1000,
+                "timeThresholdHrs": 24
+            },
+            "name": "XXX",
+            "processType": "mongod",
+            "version": "XXX"
+        }
+    ],
+    "replicaSets": [
+        {
+            "_id": "blue",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "blue_0"
+                }
+            ] 
+        }
+    ],
+    "roles": [],
+    "sharding": []
+}

@@ -3,12 +3,15 @@ kind: Service
 metadata:
   name: mongodb-mms-server-service-%%CLUSTER_NAME%%
   labels:
-    name: mongo
+    name: mongodb-mms-server-%%CLUSTER_NAME%%
 spec:
   selector:
     app: mongodb-mms-server-%%CLUSTER_NAME%%
+    role: mongodb-mms-server-%%CLUSTER_NAME%%
   ports:
-  - port: 27000
-    targetPort: 27000
-  clusterIP: None
+  - port: 30036
+    targetPort: 30036
+    nodePort: 30036
+#  clusterIP: None
+  type: NodePort
 
