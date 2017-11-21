@@ -16,7 +16,7 @@ spec:
         - name: mongodb-mms-server
           image: centos 
           env:
-            - name: MMS_BASE_URL
+            - name: MMS_BASE_URL_INTERNAL
               valueFrom: 
                 secretKeyRef:
                   name: k8s-mongodb-opsmanager-%%CLUSTER_NAME%%

@@ -21,7 +21,7 @@ rpm -U $AGENT$AGENT_VERSION
 echo "Updating /etc/mongodb-mms/automation-agent.config with:"
 echo "mmsGroupId=${MMS_GROUP_ID}"
 echo "mmsApiKey=${MMS_AGENT_APIKEY}"
-echo "mmsBaseUrl=${MMS_BASE_URL}"
+echo "mmsBaseUrl=${MMS_BASE_URL_INTERNAL}"
 cat << ENDMMS >> /etc/mongodb-mms/automation-agent.config
 
 # ############################################
@@ -34,7 +34,7 @@ cat << ENDMMS >> /etc/mongodb-mms/automation-agent.config
 # ############################################
 mmsGroupId=${MMS_GROUP_ID}
 mmsApiKey=${MMS_AGENT_APIKEY}
-mmsBaseUrl=${MMS_BASE_URL}
+mmsBaseUrl=${MMS_BASE_URL_INTERNAL}
 ENDMMS
 
 chown mongod:mongod /data
