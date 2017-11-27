@@ -69,24 +69,23 @@ AUTO_CONFIG_URL=$tmp_json
 
 debug "Reading automation agent config from $AUTO_CONFIG_URL"
 
-debug "Adding MongoDB Version $MONGODB_VERSION \
-to automation config."
-AUTO_CONFIG=$(jq --arg MONGODB_VERSION "$MONGODB_VERSION" \
-'.mongoDbVersions[0].name = $MONGODB_VERSION' \
-$AUTO_CONFIG_URL)
+#debug "Adding MongoDB Version $MONGODB_VERSION \
+#to automation config."
+#AUTO_CONFIG=$(jq --arg MONGODB_VERSION "$MONGODB_VERSION" \
+#'.mongoDbVersions[0].name = $MONGODB_VERSION' \
+#$AUTO_CONFIG_URL)
 num_disks_less_one="$(($NUMBER_OF_DISKS-1))"
 # update first member & stick in variable,
 # then iterate over number needed, update and
 # push onto processes array
 MDB_PORT=30036
-AUTO_CONFIG=$(echo $AUTO_CONFIG | \
-jq --arg MDB_PORT "$MDB_PORT" \
+AUTO_CONFIG=$(jq --arg MDB_PORT "$MDB_PORT" \
 --arg MONGODB_VERSION "$MONGODB_VERSION" \
-'.processes[0].processType = "mongod" | .processes[0].authSchemaVersion = 5 | .processes[0].featureCompatibilityVersion = "3.4" | .processes[0].version = $MONGODB_VERSION | .processes[0].args2_6.net.port = $MDB_PORT')
+'.processes[0].processType = "mongod" | .processes[0].authSchemaVersion = 5 | .processes[0].featureCompatibilityVersion = "3.4" | .processes[0].version = $MONGODB_VERSION | .processes[0].args2_6.net.port = $MDB_PORT' $AUTO_CONFIG_URL)
 
-CONTAINER=mongodb-mms-server-$CLUSTER_NAME-0
+CONTAINER=mongodb-server-$CLUSTER_NAME-0
 hostname=$(kubectl exec -it $CONTAINER \
---container mongodb-mms-server -- hostname -f | tr -d '\r')
+--container mongodb-server -- hostname -f | tr -d '\r')
 hostname=$(echo -n $hostname)
 debug "hostname=$hostname"
 AUTO_CONFIG=$(echo $AUTO_CONFIG | \
@@ -117,9 +116,9 @@ do
   jq '.processes[.processes | length] = .processes[0]')
   AUTO_CONFIG=$(echo $AUTO_CONFIG | \
   jq '.replicaSets[0].members[.replicaSets[0].members | length] = .replicaSets[0].members[0]')
-  CONTAINER=mongodb-mms-server-$CLUSTER_NAME-$i
+  CONTAINER=mongodb-server-$CLUSTER_NAME-$i
   hostname=$(kubectl exec -it $CONTAINER \
-  --container mongodb-mms-server -- hostname -f | tr -d '\r')
+  --container mongodb-server -- hostname -f | tr -d '\r')
   hostname=$(echo -n $hostname)
   debug "CONTAINER=$CONTAINER\nhostname=$hostname"
   AUTO_CONFIG=$(echo $AUTO_CONFIG | \
@@ -132,7 +131,7 @@ do
   '.processes[($i | tonumber)].hostname = $hostname | .processes[($i | tonumber)].args2_6.storage.dbPath = $dbPath | .processes[($i | tonumber)].args2_6.replication.replSetName = $CLUSTER_NAME | .processes[($i | tonumber)].args2_6.systemLog.path = $logFile | .processes[($i | tonumber)].name = $nodename | .replicaSets[0].members[($i | tonumber)].host = $nodename | .replicaSets[0].members[($i | tonumber)]._id = ($i | tonumber)')
   
 done
-echo $AUTO_CONFIG
+#echo $AUTO_CONFIG
 
 # POST the config!@
 

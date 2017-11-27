@@ -4,11 +4,11 @@ metadata:
   name: %%CLUSTER_NAME%%-data-volume-%%NUM%%
 spec:
   capacity:
-    storage: 2Gi
+    storage: 10Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: fast
   hostPath:
-    path: /data/%%CLUSTER_NAME%%-data-volume-%%NUM%%/
+    path: /data/
 

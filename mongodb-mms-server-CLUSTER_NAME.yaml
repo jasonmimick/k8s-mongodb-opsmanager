@@ -1,19 +1,19 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: mongodb-mms-server-%%CLUSTER_NAME%%
+  name: mongodb-server-%%CLUSTER_NAME%%
 spec:
   serviceName: mongodb-service-%%CLUSTER_NAME%%
   replicas: %%NUMBER_OF_DISKS%% 
   template:
     metadata:
       labels:
-        app: mongodb-mms-server-%%CLUSTER_NAME%%
-        role: mongodb-mms-server-%%CLUSTER_NAME%%
+        app: mongodb-server-%%CLUSTER_NAME%%
+        role: mongodb-server-%%CLUSTER_NAME%%
     spec:
       terminationGracePeriodSeconds: 10
       containers:
-        - name: mongodb-mms-server
+        - name: mongodb-server
           image: centos 
           env:
             - name: MMS_BASE_URL_INTERNAL

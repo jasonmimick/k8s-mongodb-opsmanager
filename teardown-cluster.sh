@@ -31,9 +31,14 @@ curl --user "$MMS_USER:$MMS_APIKEY" --digest \
 --include --request DELETE \
 "$MMS_BASE_URL_EXTERNAL/api/public/v1.0/groups/$MMS_GROUP_ID" \
 
-kubectl delete secret k8s-mongodb-opsmanager-$CLUSTER_NAME
-kubectl delete service mongodb-mms-server-service-$CLUSTER_NAME
-kubectl delete statefulset mongodb-mms-server-$CLUSTER_NAME
-kubectl delete persistentvolume $CLUSTER_NAME-data-volume-1
-kubectl delete persistentvolumeclaim \
-mongodb-persistent-storage-claim-mongodb-mms-server-$CLUSTER_NAME-0
+for thing in secret service statefulset persistentvolume persistentvolumeclaim; do
+  kubectl get $thing | grep $CLUSTER_NAME | \
+  cut -d" " -f1 | xargs kubectl delete $thing
+done
+
+#kubectl delete secret k8s-mongodb-opsmanager-$CLUSTER_NAME
+#kubectl delete service mongodb-server-service-$CLUSTER_NAME
+#kubectl delete statefulset mongodb-server-$CLUSTER_NAME
+#kubectl delete persistentvolume $CLUSTER_NAME-data-volume-1
+#kubectl delete persistentvolumeclaim \
+#mongodb-persistent-storage-claim-mongodb-server-$CLUSTER_NAME-0

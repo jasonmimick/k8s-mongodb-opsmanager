@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb-mms-server-service-%%CLUSTER_NAME%%
+  name: mongodb-service-%%CLUSTER_NAME%%
   labels:
-    name: mongodb-mms-server-%%CLUSTER_NAME%%
+    name: mongodb-service-%%CLUSTER_NAME%%
 spec:
   selector:
-    app: mongodb-mms-server-%%CLUSTER_NAME%%
-    role: mongodb-mms-server-%%CLUSTER_NAME%%
+    app: mongodb-server-%%CLUSTER_NAME%%
+    role: mongodb-server-%%CLUSTER_NAME%%
   ports:
   - port: 30036
     targetPort: 30036
-    nodePort: 30036
-#  clusterIP: None
-  type: NodePort
+#    nodePort: 30036
+  clusterIP: None
+#  type: NodePort
 
