@@ -34,7 +34,7 @@ spec:
             - name: MMS_BOOTSTRAP_URL
               value: "https://raw.githubusercontent.com/jasonmimick/k8s-mongodb-opsmanager/master/install-automation-agent.sh"
           command: [ '/bin/sh', '-c' ]
-          args: [ "curl -OL $(MMS_BOOTSTRAP_URL) && chmod +x install-automation-agent.sh && ./install-automation-agent.sh" ]
+          args: [ "cd /tmp && curl -OL $(MMS_BOOTSTRAP_URL) && chmod +x install-automation-agent.sh && ./install-automation-agent.sh" ]
           ports:
             - containerPort: 30036
           volumeMounts:

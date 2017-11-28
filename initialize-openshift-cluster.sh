@@ -171,7 +171,7 @@ Echo "MongoDB Ops Manager Agent Api Key \
 #MMS_GROUP_ID=59fc84cddf9db11c157eba70
 
 echo "Creating ssd storageclass."
-kubectl apply -f minikube-ssd-storageclass.yaml
+kubectl apply -f openshift-ssd-storageclass.yaml
 for i in $(seq 1 $NUMBER_OF_DISKS); 
 do
   echo "Creating $CLUSTER_NAME-data-volume-$i."
