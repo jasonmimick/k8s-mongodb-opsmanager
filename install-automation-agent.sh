@@ -9,7 +9,7 @@ AGENT=mongodb-mms-automation-agent-manager-
 
 # TODO - How to discover this download???? can't find in api
 #AGENT_VERSION=3.2.14.2187-1.x86_64.rhel7.rpm
-AGENT_VERSION=3.2.16.2263-1.x86_64.rhel7.rpm
+AGENT_VERSION=4.5.11.2453-1.x86_64.rhel7.rpm
 # We need to auto-detect the automation agent versions
 # available for us to download
 
